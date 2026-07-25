@@ -165,7 +165,8 @@ if HIST_CORRELATION_ACROSS_MICE:
     corr_std = corr_by_typ.std()
 
     with open('figures/STATS__HIST_CORRELATION_ACROSS_MICE', 'w') as fi:
-        n_mice = len(corr_across_sessions.loc[within_mask])
+        n_mice = corr_across_sessions.loc[
+            corr_across_sessions['typ'] == 'within', 'mouse'].nunique()        
         fi.write(f'n = {n_mice} with multiple sessions\n')
         fi.write(f'forward comparisons only\n')
         fi.write('across mice mean R: {:.4f} (std = {:.4f})\n'.format(
@@ -183,7 +184,7 @@ if HIST_CORRELATION_ACROSS_MICE:
 
 if HEATMAP_CORRELATION_ACROSS_MICE:
     # Because only forward comparisons are included, there is only one entry
-    # for each pair of mice
+    # for each forward and backward pair of mice (matrix not symmetric)
     topl = corr_across_sessions.set_index(
         ['mouse', 'mouse2'])['corr'].unstack('mouse2')
 

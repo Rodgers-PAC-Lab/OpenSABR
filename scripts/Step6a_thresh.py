@@ -153,7 +153,7 @@ assert not threshold_db.isnull().any()
 
 ## Plots
 PLOT_ABR_RMS_OVER_TIME = True
-PLOT_GROWTH_FUNCTIONS = False
+PLOT_GROWTH_FUNCTIONS = True
 PLOT_ABR_POWER_VS_AGE = True
 PLOT_ABR_POWER_VS_LEVEL = True
 PLOT_ABR_POWER_VS_LEVEL_AFTER_HL = True
@@ -320,8 +320,6 @@ if PLOT_ABR_RMS_OVER_TIME:
         # Echo
         with open(stats_filename) as fi:
             print(''.join(fi.readlines()))
-1/0
-
 
 if PLOT_GROWTH_FUNCTIONS:
     """Plot the smoothed rms of the ABR vs sound level, colored by wave

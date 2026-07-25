@@ -44,7 +44,12 @@ output_directory = paths['output_directory']
 # Create the output_directory if it doesn't already exist
 if not os.path.exists(output_directory):
     os.mkdir(output_directory)
-    
+
+# Also create a './figures' directory here, if it doesn't already exist
+# All scripts write out figures and stats there
+if not os.path.exists('figures'):
+    os.mkdir('figures')
+
 
 ## Load metadata
 metadata = shared.load_metadata(raw_data_directory)
@@ -83,8 +88,7 @@ expected_amplitude = [
 log10_voltage = np.sort(np.log10(expected_amplitude) + 1.34)
 
 # SPL as measured with the ultrasonic microphone
-# Note: Subtract 20 dB here (average over 50 ms instead of 0.5 ms)
-amplitude_labels = np.linspace(45, 93, 13).astype(int) - 20 
+amplitude_labels = np.linspace(25, 73, 13).astype(int)
 
 # Convert the voltages to cuts
 amplitude_cuts = (log10_voltage[1:] + log10_voltage[:-1]) / 2

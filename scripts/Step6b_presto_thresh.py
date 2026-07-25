@@ -206,7 +206,6 @@ if PLOT_OUR_VS_PRESTO_THRESHOLDS:
     # Echo
     with open(stats_filename) as fi:
         print(''.join(fi.readlines()))
-    1/0
 
 if PLOT_OUR_VS_PRESTO_THRESHOLDS_AFTER_HL:
     ## Plot our threshold vs ABRPresto's as connected pairs for all configs

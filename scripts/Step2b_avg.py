@@ -197,7 +197,7 @@ with open(stats_filename, 'w') as fi:
     fi.write(stats_filename + '\n')
     fi.write(
         f'n = {n_mice} mice; {n_recordings} recordings; '
-        f'sex: \n{mouse_metadata['sex'].value_counts()}\n'
+        f'sex: \n{mouse_metadata["sex"].value_counts()}\n'
         f'{n_experiments} experiments\n'
         )
     fi.write(f'duration quantiles:\n{str(quantiles)}\n')

@@ -50,8 +50,8 @@ def load_metadata(raw_data_directory):
     mouse_metadata = mouse_metadata.set_index('mouse').sort_index()        
 
 
-    ## TODO: exclude these upstream in Step 1
-    # Drop whole mouse (noisy)
+    ## Drop some data that should have been dropped already
+    # Drop whole mouse (noisy recordings)
     mouse_metadata = mouse_metadata.drop('Pineapple_197')
     recording_metadata = recording_metadata.drop('Pineapple_197', level='mouse')
     experiment_metadata = experiment_metadata.drop('Pineapple_197', level='mouse')
