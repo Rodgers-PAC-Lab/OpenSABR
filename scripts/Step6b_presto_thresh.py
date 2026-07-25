@@ -163,53 +163,9 @@ if PLOT_OUR_VS_PRESTO_THRESHOLDS:
     # that wasn't enough to cross our threshold, so we assigned a high threshold
     # but apparently the response became consistent at the lower (typical) level
 
-    # Slice out pre-HL only
+    
+    ## Slice out pre-HL only
     paired_pre_HL = paired.xs(False, level='after_HL').droplevel('HL_type')
-
-
-    ## Plot 
-    # Channels in rows, speaker side in columns
-    channel_l = ['VL', 'VR', 'RL']
-    speaker_side_l = ['L', 'R']
-    
-    # 6 panels: channel (VL/VR/RL) x speaker_side (L/R)
-    f, axa = plt.subplots(3, 2, figsize=(3.8, 3.5), sharey=True, sharex=True)
-    f.subplots_adjust(
-        wspace=.3, hspace=.4, left=.15, right=.95, bottom=.2, top=.92)
-
-    # Groupby channel * speaker_side (subplots)
-    grouped = paired_pre_HL.groupby(['channel', 'speaker_side'])
-    
-    # Iterate over channel * speaker_side
-    for (this_channel, this_speaker_side), this_paired in grouped:
-        
-        # Get ax
-        ax = axa[
-            channel_l.index(this_channel),
-            speaker_side_l.index(this_speaker_side)]
-
-        # One connected pair per row
-        ax.plot(
-            this_paired.loc[:, ['ours', 'abrpresto']].values.T,
-            marker='o', color='gray', alpha=.4, markersize=4)
-
-        # Title by speaker side, ylabel by channel
-        if ax in axa[0]:
-            ax.set_title(this_speaker_side)
-        if ax in axa[:, 0]:
-            ax.set_ylabel(this_channel, rotation=0, va='center', labelpad=20)
-        
-        # Pretty
-        ax.set_xticks([0, 1])
-        ax.set_xticklabels(['ours', 'ABRpresto'], rotation=45)
-        ax.set_yticks((30, 40, 50))
-        ax.set_ylim((20, 60))
-        ax.set_xlim(-.8, 1.8)
-        my.plot.despine(ax)
-
-    # Savefig
-    f.savefig('figures/PLOT_OUR_VS_PRESTO_THRESHOLDS.svg')
-    f.savefig('figures/PLOT_OUR_VS_PRESTO_THRESHOLDS.png', dpi=300)    
 
     
     ## Swarm the difference
@@ -234,6 +190,23 @@ if PLOT_OUR_VS_PRESTO_THRESHOLDS:
     f.savefig('figures/PLOT_OUR_VS_PRESTO_THRESHOLDS__swarm.svg')
     f.savefig('figures/PLOT_OUR_VS_PRESTO_THRESHOLDS__swarm.png', dpi=300)    
     
+    # Stats
+    # Rather than compute separately for every config, mean over configs first,
+    # then report distribution over mice
+    for_stats = this_diff.unstack('mouse').T.mean(axis=1)
+    
+    # Write stats
+    stats_filename = 'figures/STATS__PLOT_OUR_VS_PRESTO_THRESHOLDS__swarm'
+    with open(stats_filename, 'w') as fi:
+        fi.write(stats_filename + '\n')
+        fi.write(f'n = {len(for_stats)} mice, pre-HL only\n')
+        fi.write(f'quantiles: {for_stats.quantile((0, .25, .5, .75, 1))}\n')
+        fi.write(f'mean: {for_stats.mean()}, sd: {for_stats.std()}, sem: {for_stats.sem()}\n')
+
+    # Echo
+    with open(stats_filename) as fi:
+        print(''.join(fi.readlines()))
+    1/0
 
 if PLOT_OUR_VS_PRESTO_THRESHOLDS_AFTER_HL:
     ## Plot our threshold vs ABRPresto's as connected pairs for all configs
@@ -249,9 +222,9 @@ if PLOT_OUR_VS_PRESTO_THRESHOLDS_AFTER_HL:
     
     # 6 panels: channel (VL/VR/RL) x speaker_side (L/R)
     # Color: bilateral red, sham gray
-    f, axa = plt.subplots(3, 2, figsize=(3.8, 3.5), sharey=True, sharex=True)
+    f, axa = plt.subplots(3, 2, figsize=(5.3, 6), sharey=True, sharex=True)
     f.subplots_adjust(
-        wspace=.3, hspace=.4, left=.15, right=.95, bottom=.2, top=.92)
+        wspace=.3, hspace=.4, left=.2, right=.95, bottom=.2, top=.92)
 
     # Groupby HL_type * channel * speaker_side
     grouped = paired_post_HL.groupby(['HL_type', 'channel', 'speaker_side'])
@@ -310,18 +283,19 @@ if PLOT_OUR_VS_PRESTO_THRESHOLDS_EXAMPLE_CONFIG:
     
     ## Connected pairs
     f, ax = my.plot.figure_1x1_small()
+    f.subplots_adjust(bottom=.4, left=.4)
     
     # One connected pair per mouse
     ax.plot(
         this_paired.loc[:, ['ours', 'abrpresto']].values.T,
-        marker='o', color='gray', alpha=.4, markersize=4)
+        marker='o', color='k', mfc='none', alpha=.4, markersize=4)
     
     # Pretty
     ax.set_xticks([0, 1])
     ax.set_xticklabels(['ours', 'ABRpresto'], rotation=45)
-    ax.set_ylabel('threshold (dB SPL)')
-    ax.set_yticks((30, 40, 50))
-    ax.set_ylim((25, 50))
+    ax.set_ylabel('threshold\n(dB SPL)')
+    ax.set_yticks((30, 35, 40, 45))
+    ax.set_ylim((28, 46))
     ax.set_xlim(-.8, 1.8)
     my.plot.despine(ax)
     
@@ -336,18 +310,19 @@ if PLOT_OUR_VS_PRESTO_THRESHOLDS_EXAMPLE_CONFIG:
     this_diff = this_paired['ours'] - this_paired['abrpresto']
     
     # Figure
-    f, ax = my.plot.figure_1x1_small()
-    f.subplots_adjust(left=.45, bottom=.1)
+    f, ax = plt.subplots(figsize=(2.4, 1.8))
+    f.subplots_adjust(left=.5, bottom=.1, top=.9)
     
     # Swarm
-    seaborn.swarmplot(this_diff, ax=ax)
+    seaborn.swarmplot(this_diff, ax=ax, color='gray')
     ax.axhline(0, color='k', linestyle='-', linewidth=.75)
     
     # Pretty
-    ax.set_ylabel('threshold difference (dB)\n(ours - ABRpresto)')
-    ax.set_ylim((-10, 10))
-    ax.set_yticks((-10, -5, 0, 5, 10))
+    ax.set_ylabel('threshold\ndifference\n(dB)')
+    ax.set_ylim((-5, 5))
+    ax.set_yticks((-5, 0, 5))
     my.plot.despine(ax, which=('bottom', 'top', 'right'))  
+    assert this_diff.abs().max() < 5 # thus visible
     
     # Savefig
     f.savefig(
@@ -355,4 +330,16 @@ if PLOT_OUR_VS_PRESTO_THRESHOLDS_EXAMPLE_CONFIG:
     f.savefig(
         'figures/PLOT_OUR_VS_PRESTO_THRESHOLDS_EXAMPLE_CONFIG__swarm.png', dpi=300)
 
+    # Stats
+    stats_filename = 'figures/STATS__PLOT_OUR_VS_PRESTO_THRESHOLDS_EXAMPLE_CONFIG'
+    with open(stats_filename, 'w') as fi:
+        fi.write(stats_filename + '\n')
+        fi.write(f'n = {len(this_diff)} mice, pre-HL only\n')
+        fi.write(f'quantiles: {this_diff.quantile((0, .25, .5, .75, 1))}\n')
+        fi.write(f'mean: {this_diff.mean()}, sd: {this_diff.std()}, sem: {this_diff.sem()}\n')
+    
+    # Echo
+    with open(stats_filename) as fi:
+        print(''.join(fi.readlines()))
+        
 plt.show()

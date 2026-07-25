@@ -153,7 +153,7 @@ assert not threshold_db.isnull().any()
 
 ## Plots
 PLOT_ABR_RMS_OVER_TIME = True
-PLOT_GROWTH_FUNCTIONS = True
+PLOT_GROWTH_FUNCTIONS = False
 PLOT_ABR_POWER_VS_AGE = True
 PLOT_ABR_POWER_VS_LEVEL = True
 PLOT_ABR_POWER_VS_LEVEL_AFTER_HL = True
@@ -259,7 +259,7 @@ if PLOT_ABR_RMS_OVER_TIME:
                     ax.fill_between(t, 
                         (subdf.loc[level] - subdf_err.loc[level]) * 1e6,
                         (subdf.loc[level] + subdf_err.loc[level]) * 1e6,
-                        color=color, alpha=.5, lw=0)
+                        color=color, alpha=.25, lw=0)
                 
                 # Pretty
                 my.plot.despine(ax) 
@@ -320,7 +320,7 @@ if PLOT_ABR_RMS_OVER_TIME:
         # Echo
         with open(stats_filename) as fi:
             print(''.join(fi.readlines()))
-
+1/0
 
 
 if PLOT_GROWTH_FUNCTIONS:
@@ -331,7 +331,7 @@ if PLOT_GROWTH_FUNCTIONS:
     """
     
     ## Params
-    # Sample the RMS at these timepoints (samples), approximating each wave
+    # Timepoints roughly corresponding to each wave, at which RMS will be sampled
     wave_timepoints = list(np.rint(
         np.array([1.36, 2.3, 3.2, 4.2, 5.2]) * 16).astype(int))
     growth_wave_colors = plt.cm.tab10.colors[1:]
@@ -353,7 +353,7 @@ if PLOT_GROWTH_FUNCTIONS:
         for k, v in sel.items():
             this_stds = this_stds.xs(v, level=k)
         
-        # HL_type survives the preHL slice; drop it so all conditions match
+        # Drop HL_type in preHL condition, so that all conditions match levels
         if 'HL_type' in this_stds.index.names:
             this_stds = this_stds.droplevel('HL_type')
         
@@ -458,6 +458,23 @@ if PLOT_GROWTH_FUNCTIONS:
             f'PLOT_GROWTH_FUNCTIONS__{suffix}.png'), dpi=300)
 
 
+        ## Stats
+        stats_filename = f'figures/STATS__PLOT_GROWTH_FUNCTIONS__{suffix}'
+        with open(stats_filename, 'w') as fi:
+            fi.write(stats_filename + '\n')
+            fi.write(f'n = {to_agg.shape[1]} mice\n')
+            fi.write(
+                'sample ABR standard deviations at these timepoints: '
+                f'{np.array(wave_timepoints) / 16}\n'
+                'take first experiment, mean over recordings, '
+                'then mean and SEM over mice, '
+                'then plot on log scale\n'
+                )
+        
+        # Echo
+        with open(stats_filename) as fi:
+            print(''.join(fi.readlines()))
+
 if PLOT_ABR_POWER_VS_AGE:
     ## Correlate response magnitude with age of mouse
     # Slice out pre-HL only
@@ -514,6 +531,12 @@ if PLOT_ABR_POWER_VS_AGE:
     ax.set_xticks((90, 180, 270))
     ax.set_xlabel('age (days)')
     ax.set_yticks((1, 1.5, 2))
+    ax.set_ylim((0.7, 2.3))
+    ax.set_xlim((90, 290))
+    assert (age_data['age'] < 290).all()
+    assert (age_data['age'] > 90).all()
+    assert (age_data['response'] < 2.3e-6).all()
+    assert (age_data['response'] > 0.7e-6).all()
     ax.set_ylabel(f'response strength\n({MU}V rms)')    
     my.plot.despine(ax)
     
@@ -537,8 +560,12 @@ if PLOT_ABR_POWER_VS_AGE:
 
     # Pretty
     ax.set_xticks((90, 180, 270))
+    ax.set_xlim((90, 290))
     ax.set_xlabel('age (days)')
     ax.set_yticks((30, 35, 40))
+    ax.set_ylim((30, 41))
+    assert (age_data['threshold'] < 41).all()
+    assert (age_data['threshold'] > 30).all()    
     ax.set_ylabel('threshold (dB SPL)')
     my.plot.despine(ax)
     
@@ -551,6 +578,22 @@ if PLOT_ABR_POWER_VS_AGE:
     # Correlate both
     vs_response = scipy.stats.linregress(age_data['age'], age_data['response'])
     vs_thresh = scipy.stats.linregress(age_data['age'], age_data['threshold'])
+    
+    # Vs sex
+    by_sex_response = scipy.stats.ttest_ind(
+        age_data.loc[age_data['sex'] == 'F', 'response'], 
+        age_data.loc[age_data['sex'] == 'M', 'response']).pvalue
+    by_sex_thresh = scipy.stats.ttest_ind(
+        age_data.loc[age_data['sex'] == 'F', 'threshold'], 
+        age_data.loc[age_data['sex'] == 'M', 'threshold']).pvalue
+    
+    # AOV of both
+    age_data['response_centered'] = (
+        age_data['response'] - age_data['response'].mean())
+    age_data['threshold_centered'] = (
+        age_data['threshold'] - age_data['threshold'].mean())
+    aov_response = my.stats.anova(age_data, 'response_centered ~ age * sex')
+    aov_thresh = my.stats.anova(age_data, 'threshold_centered ~ age * sex')
     
     # Overall quantile on ages (across all recordings)
     quantiled_ages = list(experiment_metadata['age'].quantile(
@@ -575,13 +618,19 @@ if PLOT_ABR_POWER_VS_AGE:
             f'r={vs_thresh.rvalue:.2f}; r2={vs_thresh.rvalue ** 2:.2f}\n'
             )
         fi.write(
+            f'p-values from response_centered ~ age * sex:\n'
+            f'{aov_response["pvals"]}\n'
+            f'p-values from threshold_centered ~ age * sex:\n'
+            f'{aov_thresh["pvals"]}\n'
+            )
+        fi.write(
             f'over all recordings, age (min, q1, q2, q3, max) is '
-            f'{quantiled_ages}\n')
+            f'{quantiled_ages}\n'
+            )
 
     # Echo
     with open(stats_filename) as fi:
         print(''.join(fi.readlines()))    
-
 
 if PLOT_ABR_POWER_VS_LEVEL:
     ## Plot ABR rms power vs sound level for all mice together
