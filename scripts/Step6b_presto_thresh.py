@@ -282,16 +282,16 @@ if PLOT_OUR_VS_PRESTO_THRESHOLDS_EXAMPLE_CONFIG:
     
     ## Connected pairs
     f, ax = my.plot.figure_1x1_small()
-    f.subplots_adjust(bottom=.4, left=.4)
+    f.subplots_adjust(bottom=.4)
     
     # One connected pair per mouse
     ax.plot(
         this_paired.loc[:, ['ours', 'abrpresto']].values.T,
-        marker='o', color='k', mfc='none', alpha=.4, markersize=4)
+        marker='o', color='k', mfc='w', markersize=4, lw=1)
     
     # Pretty
     ax.set_xticks([0, 1])
-    ax.set_xticklabels(['ours', 'ABRpresto'], rotation=45)
+    ax.set_xticklabels(['ours', 'ABRpresto'], rotation=30)
     ax.set_ylabel('threshold\n(dB SPL)')
     ax.set_yticks((30, 35, 40, 45))
     ax.set_ylim((28, 46))
@@ -309,18 +309,18 @@ if PLOT_OUR_VS_PRESTO_THRESHOLDS_EXAMPLE_CONFIG:
     this_diff = this_paired['ours'] - this_paired['abrpresto']
     
     # Figure
-    f, ax = plt.subplots(figsize=(2.4, 1.8))
-    f.subplots_adjust(left=.5, bottom=.1, top=.9)
+    f, ax = my.plot.figure_1x1_small()
+    f.subplots_adjust(bottom=.4)
     
     # Swarm
-    seaborn.swarmplot(this_diff, ax=ax, color='gray')
-    ax.axhline(0, color='k', linestyle='-', linewidth=.75)
+    seaborn.swarmplot(this_diff, ax=ax, color='k', orient='h', marker=r'$\circ$')
+    ax.axvline(0, color='k', linestyle='-', linewidth=.75)
     
     # Pretty
-    ax.set_ylabel('threshold\ndifference\n(dB)')
-    ax.set_ylim((-5, 5))
-    ax.set_yticks((-5, 0, 5))
-    my.plot.despine(ax, which=('bottom', 'top', 'right'))  
+    ax.set_xlabel('threshold difference (dB)')
+    ax.set_xlim((-5, 5))
+    ax.set_xticks((-5, 0, 5))
+    my.plot.despine(ax, which=('left', 'top', 'right'))  
     assert this_diff.abs().max() < 5 # thus visible
     
     # Savefig
