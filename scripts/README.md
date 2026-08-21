@@ -1,4 +1,4 @@
-# ABR2025 - analysis scripts
+# OpenSABR - analysis scripts
 
 ## Introduction
 
@@ -111,7 +111,7 @@ the path '2025-02-12/rowan/006' within the raw data directory. The column
 "short_datafile" within recording_metadata specifies this relative path. 
 
 Within each recording subdirectory will be three files. The best way to load
-the data is to use the function `ABR2025.loading.load_recording`.
+the data is to use the function `opensabr.loading.load_recording`.
 - data.bin : A binary data file of dtype int32 including 8 channels of data. 
 The samples are stored in the following order "t0c0,t0c1,...,t0c7,t1c0,t1c1,...",
 that is, the channel dimension iterates faster than the timepoint dimension.

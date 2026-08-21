@@ -34,9 +34,9 @@ the syntax `import my`.
 
 ## Instructions
 
-To build the hardware, refer to the file `./hardware_designs/README.md`. 
+To build the hardware, refer to the file `./hardware_designs/README.md` for finding code and design files, then refer to the file `OpenSABR Build Guide.pdf` for assembly instructions. 
 
-To run the GUI and measure ABR, refer to the file `./gui/README`.
+To run the GUI and measure ABR, refer to the file `./src/opensabr/gui/README`.
 
 To run the analysis scripts and regenerate the figures included in the paper,
 refer to the file `./scripts/README`.
